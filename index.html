@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bingo du prof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFBF7; --line:#CBD9EE; --margin:#E0443E; --ink:#1F3A93; --ink-soft:#5A6FB3;
+  --hl-prof:#FFE45C; --hl-me:#FF8FC7; --text:#1B2036; --cell:#FFFFFFCC; --btn:#1F3A93; --btn-text:#FBFBF7;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#171A22; --line:#26304A; --margin:#C2413C; --ink:#B9C8FF; --ink-soft:#8494C9;
+    --hl-prof:#9C8410; --hl-me:#A13A73; --text:#E8EBF5; --cell:#1F2330CC; --btn:#B9C8FF; --btn-text:#171A22;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#171A22; --line:#26304A; --margin:#C2413C; --ink:#B9C8FF; --ink-soft:#8494C9;
+  --hl-prof:#9C8410; --hl-me:#A13A73; --text:#E8EBF5; --cell:#1F2330CC; --btn:#B9C8FF; --btn-text:#171A22;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; min-height:100%; color:var(--text);
+  font-family:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(90deg, transparent 0 22px, var(--margin) 22px 24px, transparent 24px),
+    repeating-linear-gradient(180deg, transparent 0 31px, var(--line) 31px 32px);
+}
+main{max-width:620px; margin:0 auto; padding:24px 16px 40px 40px}
+h1{
+  font-family:Kalam, "Comic Sans MS", cursive; font-weight:700; color:var(--ink);
+  font-size:clamp(2.2rem, 8vw, 3.2rem); line-height:1; margin:8px 0 6px; transform:rotate(-1.5deg);
+}
+.sub{margin:0 0 18px; color:var(--ink-soft); font-size:.95rem; line-height:1.45; max-width:46ch}
+.legend{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:.85rem; margin-bottom:16px}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.sw{width:22px; height:12px; border-radius:2px; display:inline-block; transform:skewX(-12deg)}
+.sw.p{background:var(--hl-prof)} .sw.m{background:var(--hl-me)}
+.name{display:flex; gap:8px; align-items:center; margin-bottom:14px}
+.name label{font-size:.9rem; color:var(--ink-soft)}
+.name input{
+  flex:1; min-width:0; font:inherit; font-family:Kalam, cursive; font-size:1.2rem; color:var(--ink);
+  background:transparent; border:none; border-bottom:2px dashed var(--ink-soft); padding:2px 4px;
+}
+.name input:focus{outline:none; border-bottom-style:solid; border-color:var(--ink)}
+.grid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.cell{
+  position:relative; aspect-ratio:1/1; border:1.5px solid var(--ink-soft); border-radius:4px;
+  background:var(--cell); color:var(--text); cursor:pointer; padding:6px 4px 16px;
+  font-family:Kalam, cursive; font-size:clamp(.78rem, 3.3vw, 1.02rem); line-height:1.1;
+  display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden;
+  -webkit-tap-highlight-color:transparent; transition:transform .12s ease;
+}
+.cell:active{transform:scale(.96)}
+.cell:focus-visible{outline:3px solid var(--ink); outline-offset:2px}
+.cell .t{position:relative; z-index:1}
+.cell .pts{position:absolute; bottom:3px; right:5px; font-family:"Bricolage Grotesque",sans-serif; font-size:.68rem; font-weight:600; color:var(--ink-soft); z-index:1}
+.cell::before{
+  content:""; position:absolute; left:-6%; right:-6%; top:30%; height:40%;
+  transform:rotate(-4deg) scaleX(0); transform-origin:left; transition:transform .25s ease; border-radius:3px;
+}
+.cell.prof::before{background:var(--hl-prof); transform:rotate(-4deg) scaleX(1)}
+.cell.me::before{background:var(--hl-me); transform:rotate(-4deg) scaleX(1)}
+.cell.me .pts{color:var(--text)}
+.cell.me .pts::after{content:" ×2"}
+.cell.win{border-color:var(--margin); border-width:2.5px}
+.score{
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:22px 0 6px;
+  border-top:2px solid var(--ink); padding-top:10px;
+}
+.score .big{font-family:Kalam,cursive; font-weight:700; font-size:3rem; line-height:1; color:var(--margin)}
+.score .detail{font-size:.85rem; color:var(--ink-soft); text-align:right; line-height:1.4}
+.actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
+button.act{
+  font:inherit; font-weight:600; font-size:.95rem; padding:11px 16px; border-radius:6px; cursor:pointer;
+  border:2px solid var(--btn); background:var(--btn); color:var(--btn-text);
+}
+button.act.ghost{background:transparent; color:var(--btn)}
+button.act:focus-visible{outline:3px solid var(--margin); outline-offset:2px}
+.toast{min-height:1.4em; margin-top:10px; font-size:.9rem; color:var(--ink)}
+textarea.out{
+  width:100%; margin-top:10px; min-height:150px; font-family:ui-monospace, Menlo, monospace; font-size:.85rem;
+  background:var(--cell); color:var(--text); border:1.5px solid var(--ink-soft); border-radius:4px; padding:8px; display:none;
+}
+details{margin-top:26px; font-size:.9rem; line-height:1.5}
+summary{cursor:pointer; color:var(--ink); font-weight:600}
+table{border-collapse:collapse; width:100%; margin-top:8px}
+td{padding:3px 0; border-bottom:1px solid var(--line)}
+td:last-child{text-align:right; font-weight:600}
+@media (prefers-reduced-motion: reduce){.cell::before,.cell{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Bingo du prof</h1>
+  <p class="sub">Touche une case quand il sort la réf. Touche encore si c’est toi qui la places à l’oral : les points comptent double.</p>
+
+  <div class="legend">
+    <span><i class="sw p"></i>Le prof l’a dit</span>
+    <span><i class="sw m"></i>Je l’ai placée à l’oral (×2)</span>
+  </div>
+
+  <div class="name">
+    <label for="pseudo">Pseudo</label>
+    <input id="pseudo" type="text" maxlength="24" placeholder="ton nom">
+  </div>
+
+  <div class="grid" id="grid" role="grid" aria-label="Grille de bingo"></div>
+
+  <div class="score">
+    <div class="big" id="total">0</div>
+    <div class="detail" id="detail">0 réf · 0 ligne</div>
+  </div>
+
+  <div class="actions">
+    <button class="act" id="share">Copier pour Discord</button>
+    <button class="act ghost" id="reset">Effacer les coches</button>
+    <button class="act ghost" id="newcard">Nouvelle grille</button>
+  </div>
+  <div class="toast" id="toast" aria-live="polite"></div>
+  <textarea class="out" id="out" readonly></textarea>
+
+  <details>
+    <summary>Barème</summary>
+    <p>Chaque réf vaut ses points (doublés si tu la places toi-même). Chaque ligne, colonne ou diagonale complète : +5. Carton plein : +20.</p>
+    <table id="bareme"></table>
+  </details>
+</main>
+
+<script>
+const REFS = [
+  ["Pourquoi pas",1],["Y’a aucun problème",1],["Je te promets",1],["C’est blindé",1],
+  ["À la mano",2],["Je peux vous le garantir",2],["Couture",2],["Kilo qqch",2],
+  ["À la louche carrée",2],["Open bar",2],["Usine à gaz",2],
+  ["C’est ceinture et bretelles",3],["Wahlou",3],["Sénégal",3],["Mali",3],["Jeux olympiques",3],
+  ["Jordanie",4],["Salle Yves Du Montoir",5]
+];
+const LINE_BONUS = 5, FULL_BONUS = 20, KEY = "bingo-prof-v1";
+const LINES = [];
+for(let i=0;i<4;i++){ LINES.push([0,1,2,3].map(j=>i*4+j)); LINES.push([0,1,2,3].map(j=>j*4+i)); }
+LINES.push([0,5,10,15]); LINES.push([3,6,9,12]);
+
+let state = load() || fresh("");
+
+function fresh(name){
+  const idx = REFS.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  return { card: idx.slice(0,16), marks: Array(16).fill(0), name: name || "" };
+}
+function load(){ try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.card && s.card.length===16) return s; }catch(e){} return null; }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+const grid = document.getElementById("grid");
+const pseudo = document.getElementById("pseudo");
+
+function compute(){
+  let base = 0, nRefs = 0, nMe = 0;
+  state.marks.forEach((m,i)=>{
+    if(!m) return;
+    const pts = REFS[state.card[i]][1];
+    base += m===2 ? pts*2 : pts; nRefs++; if(m===2) nMe++;
+  });
+  const done = LINES.filter(l=>l.every(i=>state.marks[i]));
+  const full = state.marks.every(Boolean);
+  const total = base + done.length*LINE_BONUS + (full?FULL_BONUS:0);
+  return {base, nRefs, nMe, done, full, total};
+}
+
+function render(){
+  grid.innerHTML = "";
+  const {done} = compute();
+  const winCells = new Set(done.flat());
+  state.card.forEach((r,i)=>{
+    const [label, pts] = REFS[r];
+    const b = document.createElement("button");
+    const m = state.marks[i];
+    b.className = "cell" + (m===1?" prof":"") + (m===2?" me":"") + (winCells.has(i)?" win":"");
+    b.setAttribute("aria-label", `${label}, ${pts} point${pts>1?"s":""}, ${m===0?"non cochée":m===1?"dite par le prof":"placée par moi, double"}`);
+    b.innerHTML = `<span class="t"></span><span class="pts">${pts} pt${pts>1?"s":""}</span>`;
+    b.querySelector(".t").textContent = label;
+    b.addEventListener("click", ()=>{ state.marks[i] = (state.marks[i]+1)%3; save(); render(); });
+    grid.appendChild(b);
+  });
+  const s = compute();
+  document.getElementById("total").textContent = s.total + " pts";
+  document.getElementById("detail").innerHTML =
+    `${s.nRefs} réf${s.nRefs>1?"s":""} dont ${s.nMe} placée${s.nMe>1?"s":""} par moi<br>${s.done.length} ligne${s.done.length>1?"s":""}${s.full?" · carton plein !":""}`;
+}
+
+function discordText(){
+  const s = compute();
+  const emo = state.marks.map(m=> m===2?"🟪":m===1?"🟨":"⬛");
+  const rows = [0,1,2,3].map(r=>emo.slice(r*4,r*4+4).join("")).join("\n");
+  const name = state.name.trim() || "Anonyme";
+  const said = state.card.map((r,i)=>[REFS[r][0],state.marks[i]]).filter(x=>x[1]);
+  const list = said.length ? said.map(([l,m])=> m===2?`• ${l} (moi ×2)`:`• ${l}`).join("\n") : "• rien pour l’instant";
+  return `**Bingo du prof — ${name}**\n${rows}\n**${s.total} pts** · ${s.done.length} ligne${s.done.length>1?"s":""}${s.full?" · CARTON PLEIN":""}\n${list}`;
+}
+
+function toast(msg){ const t=document.getElementById("toast"); t.textContent = msg; clearTimeout(toast._t); toast._t=setTimeout(()=>t.textContent="",3500); }
+
+function legacyCopy(el){
+  try{
+    el.focus(); el.select(); el.setSelectionRange(0, el.value.length);
+    return document.execCommand("copy");
+  }catch(e){ return false; }
+}
+document.getElementById("share").addEventListener("click", async ()=>{
+  const txt = discordText();
+  const out = document.getElementById("out");
+  out.value = txt; out.style.display = "block";
+  let ok = false;
+  if(navigator.clipboard && window.isSecureContext){
+    try{
+      await Promise.race([
+        navigator.clipboard.writeText(txt),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),1500))
+      ]);
+      ok = true;
+    }catch(e){ ok = false; }
+  }
+  if(!ok) ok = legacyCopy(out);
+  out.focus(); out.select();
+  toast(ok ? "Copié. Colle-le dans Discord (Ctrl+V ou appui long)." : "Copie auto bloquée : le texte est sélectionné ci-dessous, copie-le à la main.");
+});
+document.getElementById("reset").addEventListener("click", ()=>{
+  if(!confirm("Effacer toutes les coches de cette grille ?")) return;
+  state.marks = Array(16).fill(0); save(); render(); toast("Coches effacées.");
+});
+document.getElementById("newcard").addEventListener("click", ()=>{
+  if(state.marks.some(Boolean) && !confirm("Tirer une nouvelle grille ? Les coches actuelles seront perdues.")) return;
+  state = fresh(state.name); save(); render(); toast("Nouvelle grille tirée.");
+});
+pseudo.value = state.name || "";
+pseudo.addEventListener("input", ()=>{ state.name = pseudo.value; save(); });
+
+document.getElementById("bareme").innerHTML = REFS.slice().sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))
+  .map(([l,p])=>`<tr><td></td><td>${p}</td></tr>`).join("");
+document.querySelectorAll("#bareme tr").forEach((tr,i)=>{
+  const sorted = REFS.slice().sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+  tr.firstChild.textContent = sorted[i][0];
+});
+
+render();
+</script>
+</body>
+</html>
